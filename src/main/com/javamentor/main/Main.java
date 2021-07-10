@@ -6,10 +6,12 @@ import com.javamentor.dao.UserDao;
 import com.javamentor.dao.UserDaoJDBCImpl;
 import com.javamentor.exceptions.DaoException;
 import com.javamentor.model.User;
+import com.javamentor.service.UserService;
+import com.javamentor.service.UserServiceImpl;
 
 public class Main {
     public static void main(String[] args) throws DaoException {
-        UserDao user = new UserDaoJDBCImpl();
+        UserService user = new UserServiceImpl();
         user.createUsersTable();
         user.saveUser("user1", "lastName1", (byte) 21);
         user.saveUser("user2", "lastName2", (byte) 21);
