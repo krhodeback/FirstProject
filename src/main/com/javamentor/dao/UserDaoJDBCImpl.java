@@ -22,8 +22,9 @@ import java.util.logging.Logger;
 import org.apache.ibatis.jdbc.ScriptRunner;
 
 public class UserDaoJDBCImpl implements UserDao {
-    private static final String CREATE_FILE_NAME = "createTables.sql";
-    private static final String DELETE_FILE_NAME = "deleteTables.sql";
+    private static final String CREATE_SCRIPT = "CREATE TABLE IF NOT EXISTS sys.users (  `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY "
+            + ",`name` VARCHAR(45) NOT NULL, `lastName` VARCHAR(45) NOT NULL,  `age` INT NOT NULL ) ENGINE=MEMORY;";
+    private static final String DELETE_SCRIPT = "DROP TABLE IF EXISTS sys.users ;";
     private static final String INSERT_USER = "INSERT INTO sys.users (name,lastName,age) VALUES (?,?,?)";
     private static final String DELETE_USER = "DELETE  FROM sys.users WHERE id = ?";
     private static final String DELETE_ALL_USERS = "DELETE  FROM sys.users ";
@@ -38,7 +39,7 @@ public class UserDaoJDBCImpl implements UserDao {
 
     public void createUsersTable() {
         try {
-            scriptRun(CREATE_FILE_NAME);
+            scriptRun(CREATE_SCRIPT);
             log.log(Level.INFO, "Tables have been created");
         } catch (DaoException e) {
             log.log(Level.SEVERE, "Cant create tebles");
@@ -47,7 +48,7 @@ public class UserDaoJDBCImpl implements UserDao {
 
     public void dropUsersTable() {
         try {
-            scriptRun(DELETE_FILE_NAME);
+            scriptRun(DELETE_SCRIPT);
             log.log(Level.INFO, "Tables have been deleted");
         } catch (DaoException e) {
             log.log(Level.SEVERE, "Cant delete tables");
@@ -116,18 +117,14 @@ public class UserDaoJDBCImpl implements UserDao {
     }
 
     private void scriptRun(String fileName) throws DaoException {
-        String path = getClass().getClassLoader().getResource(fileName).getFile();
-        try (Connection conn = util.getConnetion(); Reader reader = new BufferedReader(new FileReader(path));) {
-            ScriptRunner sr = new ScriptRunner(conn);
-            sr.runScript(reader);
+        try (Connection conn = util.getConnetion();
+                PreparedStatement preparedStatement = conn.prepareStatement(fileName)) {
+            preparedStatement.executeUpdate();
             log.log(Level.INFO, "Tables have been changed");
-        } catch (FileNotFoundException e) {
-            throw new DaoException("Cant find file with tables", e);
-        } catch (IOException e) {
-            throw new DaoException("Cant generate tables ", e);
         } catch (SQLException e) {
-
+            log.log(Level.SEVERE, "Cant run script", e);
         } catch (DaoException e) {
+            log.log(Level.SEVERE, "Cant run script", e);
         }
     }
 }
